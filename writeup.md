@@ -21,7 +21,9 @@ The goals / steps of this project are the following:
 [image2]: ./hist_before.png "Hist before"
 [image3]: ./hist_after.png "Hist after"
 [image4]: ./all_signs.jpg "All signs"
-[image5]: ./my_signs.png "My signs.png"
+[image5]: ./my_signs.png "My signs"
+[image6]: ./vis_cnn_1.png "vis cnn 1"
+[image7]: ./vis_cnn_2.png "vis cnn 2"
 
 ---
 ###Writeup / README
@@ -286,3 +288,13 @@ Softmax For End of all speed and passing limits:
 	
 		we see that this sign has the diagonal lines like the other top 4 signs. We expected this.
  
+
+###Visualize the Neural Network's State with Test Images
+We plotted the visual output after the first two satges of the "Speed limit (70km/h)" sign. We can see nicly after the first stage clear characteristics, for example the circle and the "70".
+From the 2ed stage it is more difficult to see somthing clear.
+
+Here is what we got in the 1st stage:
+![alt text][image6]
+
+Here is what we got in the 2st stage:
+![alt text][image7]
