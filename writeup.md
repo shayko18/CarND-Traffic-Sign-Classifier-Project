@@ -62,7 +62,7 @@ In the 3ed code cell we have some "help" functions that we will use in this work
 
 
 In the 4th code cell we simply plot one image from the training set with its sign index just to get some feel for the problem we are dealing with.
-We see an example of the original image, the image after preprocessing and a "fake" image from this preprocessed image
+We see an example of the original image, the image after preprocessing and a "fake" image from this preprocessed image. Here is the random sign we plot (we got "No Entry"):
  
 ![alt text][image1]
 
@@ -171,9 +171,9 @@ The rest of the parameters stayed as is.
 The code for calculating the accuracy of the model is located in the 9th and 10th cell of the Ipython notebook.
 
 My final model results were:
-* training set accuracy of 0.992
-* validation set accuracy of 0.957 
-* test set accuracy of 0.936
+* training set accuracy of 0.993
+* validation set accuracy of 0.956 
+* test set accuracy of 0.934
 
 We can see that there is some difference between the test and validation results. this can be explained by the relatively small validation set. 
 The approach to reach this CNN is described  before, we see now that we don't overfit (the test error is not zero). 
@@ -188,6 +188,12 @@ Here are all the 43 traffic signs:
 ![alt text][image4]
 
 in the 11th cell we plot the six German traffic signs that I found on the web:
+Sign_0) Index=#4 : Speed limit (70km/h)
+Sign_1) Index=#9 : No passing
+Sign_2) Index=#11: Right-of-way at the next intersection
+Sign_3) Index=#12: Priority road
+Sign_4) Index=#14: Stop
+Sign_5) Index=#32: End of all speed and passing limits
 
 ![alt text][image5]
 
@@ -203,7 +209,7 @@ The code for making predictions on my final model is located in the 12th cell of
 
 Here are the results of the prediction:
 
-	(4)  Speed limit (70km/h)                  --> predict: Speed limit (70km/h)
+	(4)  Speed limit (70km/h)                  --> predict: Speed limit (20km/h)
 	(9)  No Passing                            --> predict: No Passing 
 	(11) Right-of-way at the next intersection --> predict: Right-of-way at the next intersection
 	(12) Priority road                         --> predict: Priority road
@@ -211,18 +217,19 @@ Here are the results of the prediction:
 	(32) End of all speed and passing limits   --> predict: End of all speed and passing limits
 
 
-The model was able to correctly guess 6 of the 6 traffic signs, which gives an accuracy of 100%. This compares favorably to the accuracy on the test set of ~94%.
-The pictures we took were relatively with good quality so the prediction was "easy": with high confidence.
+The model was able to correctly guess 5 of the 6 traffic signs, which gives an accuracy of 83.33%. This is less than the accuracy on the test set of ~94%.
+
 
 ####3. Model Certainty - Softmax Probabilities
 
 The code for making predictions on my final model is also located in the 12th cell of the Ipython notebook.
 
-All the images I selected were predicted correctly.
-- The two most confident predictions were on sign index 11,12 (Right-of-way at the next intersection, Priority road)
-- Also with good confidence we got sign index 4,9 (Speed limit (70km/h), No Passing)
-- After that, sign index 32 (End of all speed and passing limits) confidence was just 85%
-- Finally sign index 14 (Stop) confidence was just 64%
+5 out of 6 images I selected were predicted correctly.
+ - Four prediction were vey good (>99.9% likleyhood)
+ - One prediction with 99.4% likleyhood
+ - One error
+
+
 
 Also here (like I explained before) we can use or not use the a-priori probabilty of the signs. As before, I used this probability.
 
@@ -230,63 +237,63 @@ Here are the results for the 6 images we looked on:
 
 Softmax For Speed limit (70km/h):
 
-	   Speed limit (70km/h)            with Pr=9.96e-01
-	   Speed limit (20km/h)            with Pr=4.35e-03
-	   Speed limit (120km/h)           with Pr=2.70e-09
-	   Roundabout mandatory            with Pr=3.16e-11
-	   Road narrows on the right       with Pr=6.66e-13
+      Sign=Speed limit (20km/h)                                 with Pr=9.52e-01
+      Sign=Speed limit (70km/h)                                 with Pr=4.78e-02
+      Sign=Road narrows on the right                            with Pr=5.19e-06
+      Sign=Keep left                                            with Pr=4.49e-06
+      Sign=Traffic signals                                      with Pr=3.29e-06
 	
-	We see that the most likely options has circles in them, and the sign itself is round
+	We see that most of the most likely options has circles in them, and the sign itself is round. The number 20 is similar to 70 (regarding the shape of them), so it is logocal to imagine that that kind of error could happen. The right sign was 2ed most likley here.
 
 Softmax For No Passing:
 
-	   No Passing                                       with Pr=9.79e-01
-	   No entry                                         with Pr=2.08e-02
-	   Vehicles over 3.5 metric tons prohibited         with Pr=4.48e-12
-	   End of no passing                                with Pr=6.63e-13
-	   No passing for vehicles over 3.5 metric tons     with Pr=2.34e-14
+      Sign=No passing                                           with Pr=1.00e+00
+      Sign=End of no passing                                    with Pr=2.85e-06
+      Sign=Stop                                                 with Pr=2.37e-09
+      Sign=End of all speed and passing limits                  with Pr=8.05e-10
+      Sign=No entry                                             with Pr=1.44e-11
 	
-	We see that "No passing for vehicles over 3.5 metric tons" is very unlikely, but still in the top 5. we see that all the signs are round signs
+	We see that "End of no passing" is very unlikely, but still in the top 5. we see that all the signs are round signs
 
 Softmax Right-of-way at the next intersection:
 
-	   Right-of-way at the next intersection with Pr=1.00e+00
-	   Beware of ice/snow                    with Pr=6.55e-05
-	   Double curve                          with Pr=3.70e-12
-	   Pedestrians                           with Pr=9.47e-15
-	   Children crossing                     with Pr=2.85e-16
+      Sign=Right-of-way at the next intersection                with Pr=1.00e+00
+      Sign=Beware of ice/snow                                   with Pr=7.36e-07
+      Sign=Children crossing                                    with Pr=1.95e-11
+      Sign=Double curve                                         with Pr=1.38e-11
+      Sign=Slippery road                                        with Pr=5.21e-14
 	   
-		We see that all the signs are warning sign: triangle signs 
+	We see that all the signs are warning sign: triangle signs 
 
 Softmax For Priority road:
 
-	   Priority road            with Pr=1.00e+00
-	   Roundabout mandatory     with Pr=5.84e-08
-	   No entry                 with Pr=7.44e-15
-	   Stop                     with Pr=2.21e-16
-	   Keep right               with Pr=9.53e-18
+      Sign=Priority road                                        with Pr=1.00e+00
+      Sign=Roundabout mandatory                                 with Pr=2.96e-07
+      Sign=End of no passing by vehicles over 3.5 metric tons   with Pr=7.49e-08
+      Sign=Right-of-way at the next intersection                with Pr=5.27e-09
+      Sign=End of no passing                                    with Pr=6.04e-10
 
-		"Priority road" has a special shape, we see that is the top 5 there are round sign and the stop sign 
+	"Priority road" has a special shape, we see that is the top 5 there are round signs 
 
 Softmax For Stop:
 
-	   Stop                      with Pr=6.36e-01
-	   Turn right ahead          with Pr=3.31e-01
-	   Speed limit (60km/h)      with Pr=1.69e-02
-	   Keep left                 with Pr=1.21e-02
-	   Roundabout mandatory      with Pr=3.69e-03
+      Sign=Stop                                                 with Pr=9.94e-01
+      Sign=Speed limit (70km/h)                                 with Pr=5.70e-03
+      Sign=Speed limit (20km/h)                                 with Pr=1.92e-04
+      Sign=Speed limit (30km/h)                                 with Pr=7.78e-06
+      Sign=Keep left                                            with Pr=1.79e-06
 	
-		This was the most difficult prediction. the shape is close to being round, so round signs were selected
+	This was the a little more difficult prediction. the shape is close to being round, so round signs were selected
 
 Softmax For End of all speed and passing limits:
 
-	   End of all speed and passing limits                    with Pr=8.47e-01
-	   End of no passing                                      with Pr=1.42e-01
-	   End of speed limit (80km/h)                            with Pr=1.17e-02
-	   End of no passing by vehicles over 3.5 metric tons     with Pr=2.31e-05
-	   Speed limit (60km/h)                                   with Pr=1.01e-10
+      Sign=End of all speed and passing limits                  with Pr=1.00e+00
+      Sign=End of speed limit (80km/h)                          with Pr=2.70e-04
+      Sign=End of no passing                                    with Pr=1.39e-05
+      Sign=Children crossing                                    with Pr=2.67e-06
+      Sign=Speed limit (30km/h)                                 with Pr=7.97e-07
 	
-		we see that this sign has the diagonal lines like the other top 4 signs. We expected this.
+	we see that this sign has the diagonal lines like the sign "End of no passing". We expected this. In other runs the other signs with diagonal line were in the top 5 likley signs here.
  
 
 ###Visualize the Neural Network's State with Test Images
