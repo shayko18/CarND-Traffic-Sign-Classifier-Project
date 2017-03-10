@@ -297,8 +297,8 @@ Softmax For End of all speed and passing limits:
  
 
 ###Visualize the Neural Network's State with Test Images
-We plotted the visual output after the first two satges of the "Speed limit (70km/h)" sign. We can see nicly after the first stage clear characteristics, for example the circle and the "70".
-From the 2ed stage it is more difficult to see somthing clear.
+We plotted the visual output after the first two satges of the "Speed limit (70km/h)" sign. We can see nicly after the first stage clear characteristics, mainly edges in the image, for example the circle and the "70" edges.
+From the 2ed stage it is more difficult to see something clear. we would expect to see some higher level features.
 
 Here is what we got in the 1st stage:
 ![alt text][image6]
