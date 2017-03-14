@@ -19,10 +19,11 @@ The goals / steps of this project are the following:
 [image1]: ./sign_example.png "Sign example"
 [image2]: ./hist_before.png "Hist before"
 [image3]: ./hist_after.png "Hist after"
-[image4]: ./all_signs.jpg "All signs"
-[image5]: ./my_signs.png "My signs"
-[image6]: ./vis_cnn_1.png "vis cnn 1"
-[image7]: ./vis_cnn_2.png "vis cnn 2"
+[image4]: ./md_fa.png "MissDetect FalseAlarm"
+[image5]: ./all_signs.jpg "All signs"
+[image6]: ./my_signs.png "My signs"
+[image7]: ./vis_cnn_1.png "vis cnn 1"
+[image8]: ./vis_cnn_2.png "vis cnn 2"
 
 ---
 
@@ -61,7 +62,7 @@ In the 3ed code cell we have some "help" functions that we will use in this work
 
 
 In the 4th code cell we simply plot one image from the training set with its sign index and name just to get some feel for the problem we are dealing with.
-We see an example of the original image, the image after preprocessing and a "fake" image from this preprocessed image. Here is the random sign we plot (we got the sign "No Entry"):
+We see an example of the original image, the image after preprocessing and a "fake" image from this preprocessed image. Here is the random sign we plot (we got the sign "Right-of-way at the next intersection"):
  
 ![alt text][image1]
 
@@ -72,7 +73,7 @@ We see an example of the original image, the image after preprocessing and a "fa
 
 The 5th code cell of the IPython notebook we are dealing with three issues:
 
-- Looking at the distribution of the training data and plotting its histogram. An important question I asked myself is if we want to assume that the input data class is a random variable (has a pdf). If it does we can use the input data to try to estimate this pdf and use it to modify the cross entropy function (we use Pr(y|X)*Pr(X) and not just Pr(y|X)). I think it is logical to assume that we can say something about the a-priori distribution of the traffic signs: for example there are surly more 'Yield' signs than 'Wild animals crossing' signs. But I left this question open and coded the two options: one that assume an a-priori distribution (use_a_priory_dist=1, this is the default) and the seconed does not (use_a_priory_dist=0). I got better results when I used the a-priori distribution. 
+- Looking at the distribution of the training data and plotting its histogram. An important question I asked myself is if we want to assume that the input data class is a random variable (has a pdf). If it does we can use the input data to try to estimate this pdf and use it to modify the cross entropy function (we use Pr(y|X)*Pr(X) and not just Pr(y|X)). I think it is logical to assume that we can say something about the a-priori distribution of the traffic signs: for example there are surly more 'Yield' signs than 'Wild animals crossing' signs. But I left this question open and coded the two options: one that assume an a-priori distribution (use_a_priory_dist=1, this is the default) and the second does not (use_a_priory_dist=0). I got better results when I used the a-priori distribution. 
 - Balancing the training data: We see from the histogram that there are class that are poorly represented compare to other class (class 0 Vs class 1 for example). We would like to train on a balanced data so the CNN we train on all the input class. We gave the option to balance the data (balance_en=1, this is the default). What we did is to make sure each class will have at least "class_minimal_val" samples. 
 "class_minimal_val" is set to be the value of the average+std of the original samples. For each class we calculate by what factor we have multiply **each sample** from this class. Each new sample is also jittered from the original sample (rotation+zoom+shift)
 - Generating "fake data": we wanted to give the option to increase the number of input samples we have (add_fake_data_en=1, this is the default). This will give the CNN more data to work on and should result in a better error rate. We understand that an important difference between the different inputs of the same class can be due to rotation, zomoming and shifting. Those are easy to create synthetically, therefore we increased the samples by a factor of 2 (configurable). Each new sample is jittered from the original sample (rotation+zoom+shift). An example of the "fake data" was given before in "Exploratory visualization of the dataset".
@@ -161,11 +162,11 @@ So this is what we have:
 I run the model for 15 epochs with batch size of 128.
 In the first 10 epochs we run with learning rate of 0.001, in the last 5 epochs we lower the learning rate to 0.0001 in order to fine tune the model estimations.
 
-2. In the 8th code cell there is the pipeline
+2. In the 8th code cell there is the training pipeline
 Pay attention that if we choose to use the a-priori distribution we insert it here (if we choose not to use the a-priori distribution, the relevant vector will be a zeros vector). Explanation on it is in the previous sections. We used the Adam optimizer in order to minimize the cross entropy.
 In this cell there are also two placeholders (w_stg1, w_stg2) to help us answer question 9 (extra question). Also "TopKV2" is defined to help us with future question (Output Top 5 Softmax).
 
-One more point: I think that for the real problem it would be a good idea to not weight all the errors with the same weight. For example if you are mistaken between 'stop' sign and 'No Entry' sign it is a "big" error. But if you are mistaken between 'Speed limit (20km/h)' to 'Speed limit (30km/h)' it is not that important (Anyway in Germany the speed limit is not relevant :-)) 
+One more point: I think that for the real problem it would be a good idea to **not** weight all the errors with the same weight. For example if you are mistaken between 'stop' sign and 'No Entry' sign it is a "big" error. But if you are mistaken between 'Speed limit (20km/h)' to 'Speed limit (30km/h)' it is not that important (Anyway in Germany the speed limit is not relevant :-)). As We can expect (and we will see soon) the guys that designed the sign thought of this (also for humans) and tried in most cases to make similar meaning signs look similar also in the shape. For example, the warning signs are all triangle. We will see that usually errors happen between signs that look the similar.
 
 
 
@@ -175,15 +176,26 @@ One more point: I think that for the real problem it would be a good idea to not
 
 The code for calculating the accuracy of the model is located in the 9th and 10th cell of the Ipython notebook.
 
+In the 9th cell we have the evaluation pipeline that will give us the accuracy of the model. On top of the accuracy we also calculate, and plot, the "miss detect" (1-recall) and "false alarm" (1-precision) probability per class. We will use those in "step 3" to try to understand what sign is likely to be mistaken and what sign is likely to be wrongly estimated.
+At the bottom of the 9th cell we have the function that will give us the 5 most likely signs per estimation. We will use it in "step 3".
+
 My final model results were:
 
-* training set accuracy of 0.993
-* validation set accuracy of 0.956 
-* test set accuracy of 0.934
+* training set accuracy of 0.991
+* validation set accuracy of 0.953 
+* test set accuracy of 0.933
+
+Here is the "miss detect" (1-recall) and "false alarm" (1-precision) probability per class. We will use those probabilities we the six signs we look into in the next section:
+
+![alt text][image4]
+
+We can identify signs that are more difficult too predict correctly, usually those had less samples in the original train data, and because we used the a-priory probabilities their errors are less important to the overall accuracy (for example sign #0). Also we can see which signs are more likely to get wrongly predicted - sign #30 for example. Sign #30 is "Beware of ice/snow" and I think the reason for its high false alarm is that it is difficult to identify the "snowflake" in the middle of the sign, but the rest of the sign is similar to other "triangle" signs and it's a-priori is not low so it can be a good prediction for not so clear triangle signs.  
 
 We can see that there is some difference between the test and validation results. this can be explained by the relatively small validation set. 
 The approach to reach this CNN is described before, we see now that we don't overfit as much as before (the test error is not zero and is closer to the validation error). 
-We can see the benefit in the "gear shifting", the error drops when we start to use the finer gear (0.0001)
+We can see the benefit in the "gear shifting", the error drops when we start to use the finer gear (0.0001). We also can see that the accuracy (both of the validation and of the training) stops from improving, so we can stop the training.
+
+
 
 
 ###Test a Model on New Images
@@ -193,7 +205,7 @@ We can see the benefit in the "gear shifting", the error drops when we start to 
 Here are all the 43 traffic signs:
 
 
-![alt text][image4]
+![alt text][image5]
 
 
 in the 11th cell we plot the six German traffic signs that I found on the web:
@@ -205,7 +217,7 @@ in the 11th cell we plot the six German traffic signs that I found on the web:
 - Sign_4) Index=#14: Stop
 - Sign_5) Index=#32: End of all speed and passing limits
 
-![alt text][image5]
+![alt text][image6]
 
 We expect that round signs will "compete" with round signs. 
 The same goes for the triangle signs (warning signs).
@@ -219,102 +231,106 @@ The code for making predictions on my final model is located in the 12th cell of
 
 Here are the results of the prediction:
 
-	(4)  Speed limit (70km/h)                  --> predict: Speed limit (20km/h)     (Error)   
-	(9)  No Passing                            --> predict: No Passing 
-	(11) Right-of-way at the next intersection --> predict: Right-of-way at the next intersection
-	(12) Priority road                         --> predict: Priority road
-	(14) Stop                                  --> predict: Stop
-	(32) End of all speed and passing limits   --> predict: End of all speed and passing limits
+	(4)  Speed limit (70km/h)                  --> predict (X): Speed limit (20km/h)    
+	(9)  No Passing                            --> predict (V): No Passing 
+	(11) Right-of-way at the next intersection --> predict (X): Beware of ice/snow  
+	(12) Priority road                         --> predict (V): Priority road
+	(14) Stop                                  --> predict (V): Stop
+	(32) End of all speed and passing limits   --> predict (V): End of all speed and passing limits
 
 
-The model was able to correctly guess 5 of the 6 traffic signs, which gives an accuracy of 83.33%. This is less than the accuracy on the test set of ~94%. The Error happened on the first sign. 
+The model was able to correctly guess 4 of the 6 traffic signs, which gives an accuracy of 66.67%. This is less than the accuracy on the test set of ~93%. The Error happened on the 1st and 3ed signs. Let's see what is the probability to get 2/6 errors if we assume the error probability for each sign is the same and equal to (1-0.93). This assumption is not accurate as we saw in the miss detect probabilities:
+Pr(2/6 err) = 15 * 0.93^4 * 0.07^2 = 5.5%  
 
 
 ####3. Model Certainty - Softmax Probabilities
 
 The code for making predictions on my final model is also located in the 12th cell of the Ipython notebook.
 
-5 out of 6 images I selected were predicted correctly:
+4 out of 6 images I selected were predicted correctly:
 
- - Four prediction were very good (>99.9% likleyhood)
- - One prediction with 99.4% likleyhood (the "stop" sign, 5th picture)
- - One error (the "Speed limit (70km/h) " sign, 5th picture). As we will see shortly the 2ed most likley option was the rigth answer with 4.8% probability. 
+ - Two predictions were very good and correct: The second most likely was very unlikely: <1e-9
+ - Two prediction was good and correct: The second most likely has a likelyhood of about 1e-3 or 1e-4
+ - Two errors (the "Speed limit (70km/h)" sign, 1st picture and "Right-of-way at the next intersection", 3ed picture). 
+	 - As we will see shortly in both of them the 2ed most likely option was the right answer.
+	 - We will also see that the signs that were wrongly predicted as the correct signs ("Speed limit (20km/h)" and "Beware of ice/snow") have a high false alarm probability, which means they are likely as wrong estimations. We could go one step further and calculate the false alarm for each class as a function of the "input" sign.
+	 - We can see that the sign "Right-of-way at the next intersection" has relatively high miss rate (11%), so it is more likely than others to be wrongly predicted. 
 
 
+Also here (like I explained before) we can use or not use the a-priori probability of the signs. As before, I used this probability.
 
-Also here (like I explained before) we can use or not use the a-priori probabilty of the signs. As before, I used this probability.
+Here are the results for the 6 images we looked on. For each input sign I also printed its miss detect (MD) probability. For each estimation I also printed the false alarm (FA) probability (on top of its likely probability)
 
-Here are the results for the 6 images we looked on:
+   Softmax For Sign: Speed limit (70km/h) ;   Global MD Pr=0.06
 
-Softmax For Speed limit (70km/h):
-
-      Sign=Speed limit (20km/h)                                 with Pr=9.52e-01
-      Sign=Speed limit (70km/h)                                 with Pr=4.78e-02
-      Sign=Road narrows on the right                            with Pr=5.19e-06
-      Sign=Keep left                                            with Pr=4.49e-06
-      Sign=Traffic signals                                      with Pr=3.29e-06
+      Sign=Speed limit (20km/h)                                 with Pr=1.00e+00 ;   Global FA Pr=0.43
+      Sign=Speed limit (70km/h)                                 with Pr=3.48e-04 ;   Global FA Pr=0.03
+      Sign=Traffic signals                                      with Pr=7.05e-07 ;   Global FA Pr=0.13
+      Sign=Speed limit (30km/h)                                 with Pr=1.18e-08 ;   Global FA Pr=0.04
+      Sign=Go straight or left                                  with Pr=4.75e-09 ;   Global FA Pr=0.19
 	
-	Here we got the error. We see that most of the most likely options has circles in them, and the sign itself is round. The number 20 is similar to 70 (regarding the shape of them), so it is logical to imagine that that kind of error could happen. The right sign was 2ed most likley here.
+	Here we got the error. We see that most of the most likely options has circles in them, and the sign itself is round. The number 20 is similar to 70 (regarding the shape of them), so it is logical to imagine that that kind of error could happen. The right sign was 2ed most likely here. We also see that "Speed limit (20km/h)" has a high FA probability 
 
-Softmax For No Passing:
+   Softmax For Sign: No passing ;   Global MD Pr=0.03
 
-      Sign=No passing                                           with Pr=1.00e+00
-      Sign=End of no passing                                    with Pr=2.85e-06
-      Sign=Stop                                                 with Pr=2.37e-09
-      Sign=End of all speed and passing limits                  with Pr=8.05e-10
-      Sign=No entry                                             with Pr=1.44e-11
+      Sign=No passing                                           with Pr=1.00e+00 ;   Global FA Pr=0.03
+      Sign=Vehicles over 3.5 metric tons prohibited             with Pr=1.40e-10 ;   Global FA Pr=0.06
+      Sign=No vehicles                                          with Pr=5.19e-17 ;   Global FA Pr=0.08
+      Sign=No passing for vehicles over 3.5 metric tons         with Pr=3.66e-17 ;   Global FA Pr=0.00
+      Sign=End of no passing                                    with Pr=8.30e-18 ;   Global FA Pr=0.06
 	
-	We see that "End of no passing" is very unlikely, but still the 2ed most likley. This is logical because this sign looks very much like the original sign (especially on grey sacle). we see that all the signs are round signs, like we would expect.
+	We see that the miss detect for this sign is low (0.03). We also see that all the top five options are very similar to the "No passing" sign (especially on grey sacle). We see that all the signs are round signs, like we would expect.
 
-Softmax Right-of-way at the next intersection:
+   Softmax For Sign: Right-of-way at the next intersection ;   Global MD Pr=0.11
 
-      Sign=Right-of-way at the next intersection                with Pr=1.00e+00
-      Sign=Beware of ice/snow                                   with Pr=7.36e-07
-      Sign=Children crossing                                    with Pr=1.95e-11
-      Sign=Double curve                                         with Pr=1.38e-11
-      Sign=Slippery road                                        with Pr=5.21e-14
+      Sign=Beware of ice/snow                                   with Pr=9.99e-01 ;   Global FA Pr=0.33
+      Sign=Right-of-way at the next intersection                with Pr=1.39e-03 ;   Global FA Pr=0.03
+      Sign=Slippery road                                        with Pr=2.45e-08 ;   Global FA Pr=0.24
+      Sign=Wild animals crossing                                with Pr=6.06e-09 ;   Global FA Pr=0.04
+      Sign=Dangerous curve to the right                         with Pr=1.47e-09 ;   Global FA Pr=0.29
 	   
-	We see that all the signs are warning sign: triangle signs, like we would expect
+	We see that the "input" sign has a high miss detect probability (11%) and also that the sign that we estimated has high false alarm probability (33%). The correct sign is in the second place. We see that all the signs are warning sign: triangle signs, like we would expect.
 
-Softmax For Priority road:
+   Softmax For Sign: Priority road ;   Global MD Pr=0.03
 
-      Sign=Priority road                                        with Pr=1.00e+00
-      Sign=Roundabout mandatory                                 with Pr=2.96e-07
-      Sign=End of no passing by vehicles over 3.5 metric tons   with Pr=7.49e-08
-      Sign=Right-of-way at the next intersection                with Pr=5.27e-09
-      Sign=End of no passing                                    with Pr=6.04e-10
+      Sign=Priority road                                        with Pr=1.00e+00 ;   Global FA Pr=0.02
+      Sign=Roundabout mandatory                                 with Pr=9.69e-12 ;   Global FA Pr=0.19
+      Sign=Keep right                                           with Pr=1.84e-17 ;   Global FA Pr=0.03
+      Sign=Speed limit (50km/h)                                 with Pr=3.37e-20 ;   Global FA Pr=0.02
+      Sign=Speed limit (100km/h)                                with Pr=1.16e-21 ;   Global FA Pr=0.04
 
 	"Priority road" has a special shape (diamond shape) that is closer to round than to triangle, we see that is the top 5 there are round signs. We can also see that both "Priority road" and "Roundabout mandatory" has an inner shape that is the same as the outer shape. like diamond inside a diamond, or a circle (three arrows that are almost like a circle) inside a circle.   
 
-Softmax For Stop:
+   Softmax For Sign: Stop ;   Global MD Pr=0.03
 
-      Sign=Stop                                                 with Pr=9.94e-01
-      Sign=Speed limit (70km/h)                                 with Pr=5.70e-03
-      Sign=Speed limit (20km/h)                                 with Pr=1.92e-04
-      Sign=Speed limit (30km/h)                                 with Pr=7.78e-06
-      Sign=Keep left                                            with Pr=1.79e-06
+      Sign=Stop                                                 with Pr=9.99e-01 ;   Global FA Pr=0.05
+      Sign=Speed limit (60km/h)                                 with Pr=1.09e-03 ;   Global FA Pr=0.13
+      Sign=Speed limit (120km/h)                                with Pr=3.24e-05 ;   Global FA Pr=0.10
+      Sign=End of all speed and passing limits                  with Pr=1.46e-05 ;   Global FA Pr=0.34
+      Sign=Priority road                                        with Pr=1.58e-06 ;   Global FA Pr=0.02
 	
 	This was the a little more difficult prediction. The shape (octagon) is close to being round, so round signs were selected
 
-Softmax For End of all speed and passing limits:
+   Softmax For Sign: End of all speed and passing limits ;   Global MD Pr=0.05
 
-      Sign=End of all speed and passing limits                  with Pr=1.00e+00
-      Sign=End of speed limit (80km/h)                          with Pr=2.70e-04
-      Sign=End of no passing                                    with Pr=1.39e-05
-      Sign=Children crossing                                    with Pr=2.67e-06
-      Sign=Speed limit (30km/h)                                 with Pr=7.97e-07
+      Sign=End of all speed and passing limits                  with Pr=1.00e+00 ;   Global FA Pr=0.34
+      Sign=End of no passing                                    with Pr=1.61e-04 ;   Global FA Pr=0.06
+      Sign=End of no passing by vehicles over 3.5 metric tons   with Pr=7.04e-05 ;   Global FA Pr=0.04
+      Sign=End of speed limit (80km/h)                          with Pr=1.38e-05 ;   Global FA Pr=0.05
+      Sign=Roundabout mandatory                                 with Pr=6.56e-07 ;   Global FA Pr=0.19
+
 	
-	We see that this sign has the diagonal lines like the sign "End of no passing". We expected this. In other runs the other signs with diagonal line were in the top 5 likeliest signs here.
+	We see that this sign has the diagonal lines like the sign "End of no passing". We expected this. We expect signs with diagonal line were in the top 5 likeliest signs here.
  
 
 ###Visualize the Neural Network's State with Test Images
-We plotted the visual output after the first two satges of the "Speed limit (70km/h)" sign. We can see nicly after the first stage clear characteristics, mainly edges in the image, for example the circle and the "70" edges.
+We plotted the visual output after the first two stages of the "Speed limit (70km/h)" sign. We can see nicely after the first stage clear characteristics, mainly edges in the image, for example the circle and the "70" edges.
 From the 2ed stage it is more difficult to see something clear. we would expect to see some higher level features.
 
 Here is what we got in the 1st stage:
 
-![alt text][image6]
+![alt text][image7]
 
 Here is what we got in the 2st stage:
 
-![alt text][image7]
+![alt text][image8]
